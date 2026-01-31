@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: #2c5aa0;
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 1rem;
+            color: #5a7ba8;
+        }
+
+        .main-content {
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #2c5aa0;
+        }
+
+        button {
+            background: #2c5aa0;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #234a84;
+        }
+
+        button:active {
+            background: #1a3864;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .settings-list {
+            grid-column: 1 / -1;
+        }
+
+        .settings-grid {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .setting-item {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s;
+        }
+
+        .setting-item:hover {
+            border-color: #2c5aa0;
+            box-shadow: 0 2px 8px rgba(44, 90, 160, 0.2);
+        }
+
+        .setting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .setting-uid {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+            background: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .setting-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .btn-edit {
+            background: #5a7ba8;
+        }
+
+        .btn-edit:hover {
+            background: #4a6b98;
+        }
+
+        .btn-delete {
+            background: #d9534f;
+        }
+
+        .btn-delete:hover {
+            background: #c9302c;
+        }
+
+        .setting-data {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .setting-metadata {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            width: auto;
+            padding: 8px 16px;
+        }
+
+        .pagination span {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            width: auto;
+            padding: 0;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .stats {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: #2c5aa0;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Settings Manager</h1>
+            <p>Manage your application settings with ease</p>
+        </header>
+
+        <div id="alert-container"></div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>Create New Setting</h2>
+                <form id="create-form">
+                    <div class="form-group">
+                        <label for="json-input">JSON Data:</label>
+                        <textarea 
+                            id="json-input" 
+                            placeholder='{"theme": "dark", "language": "en", "notifications": {"email": true}}'
+                            required
+                        ></textarea>
+                    </div>
+                    <button type="submit" id="create-btn">Create Setting</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card settings-list">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <h2 style="margin: 0;">All Settings</h2>
+                    <div style="margin-top: 5px; color: #666; font-size: 14px;">
+                        <span><strong>Total:</strong> <span id="total-settings">0</span></span>
+                    </div>
+                </div>
+                <div class="pagination" id="pagination-controls-top" style="display: none; margin: 0;">
+                    <button id="prev-btn-top" class="btn-small">← Previous</button>
+                    <span id="page-info-top">Page 1</span>
+                    <button id="next-btn-top" class="btn-small">Next →</button>
+                </div>
+            </div>
+            <div id="settings-container">
+                <div class="loading">Loading settings...</div>
+            </div>
+            <div class="pagination" id="pagination-controls" style="display: none; justify-content: flex-end;">
+                <button id="prev-btn" class="btn-small">← Previous</button>
+                <span id="page-info">Page 1</span>
+                <button id="next-btn" class="btn-small">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Setting</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="edit-form">
+                <div class="form-group">
+                    <label>UID:</label>
+                    <div class="setting-uid" id="edit-uid"></div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-json-input">JSON Data:</label>
+                    <textarea id="edit-json-input" required></textarea>
+                </div>
+                <button type="submit">Update Setting</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3000';
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentEditUid = null;
+        const ITEMS_PER_PAGE = 10;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('create-form').addEventListener('submit', handleCreate);
+            document.getElementById('edit-form').addEventListener('submit', handleUpdate);
+            
+            // Bottom pagination
+            document.getElementById('prev-btn').addEventListener('click', () => changePage(currentPage - 1));
+            document.getElementById('next-btn').addEventListener('click', () => changePage(currentPage + 1));
+            
+            // Top pagination
+            document.getElementById('prev-btn-top').addEventListener('click', () => changePage(currentPage - 1));
+            document.getElementById('next-btn-top').addEventListener('click', () => changePage(currentPage + 1));
+        }
+
+        // Show alert message
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Load settings from API
+        async function loadSettings() {
+            try {
+                const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+                const response = await fetch(`${API_BASE_URL}/settings?limit=${ITEMS_PER_PAGE}&offset=${offset}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displaySettings(data.items);
+                updatePagination(data.pagination);
+                updateStats(data.pagination);
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                document.getElementById('settings-container').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">!</div>
+                        <h3>Error loading settings</h3>
+                        <p>${error.message}</p>
+                        <p style="margin-top: 10px; font-size: 14px;">Make sure the API server is running on ${API_BASE_URL}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Display settings in the UI
+        function displaySettings(settings) {
+            const container = document.getElementById('settings-container');
+
+            if (settings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">-</div>
+                        <h3>No settings yet</h3>
+                        <p>Create your first setting using the form above</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <div class="settings-grid">
+                    ${settings.map(setting => `
+                        <div class="setting-item">
+                            <div class="setting-header">
+                                <span class="setting-uid">${setting.uid}</span>
+                                <div class="setting-actions">
+                                    <button class="btn-small btn-edit" onclick="openEditModal('${setting.uid}')">Edit</button>
+                                    <button class="btn-small btn-delete" onclick="deleteSetting('${setting.uid}')">Delete</button>
+                                </div>
+                            </div>
+                            <div class="setting-data">${formatSettingData(setting)}</div>
+                            <div class="setting-metadata">
+                                <span>Created: ${formatDate(setting._metadata.created_at)}</span>
+                                <span>Updated: ${formatDate(setting._metadata.updated_at)}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Format setting data (exclude uid and _metadata)
+        function formatSettingData(setting) {
+            const { uid, _metadata, ...data } = setting;
+            return JSON.stringify(data, null, 2);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+
+        // Update pagination controls
+        function updatePagination(pagination) {
+            totalPages = pagination.totalPages;
+            currentPage = pagination.currentPage;
+
+            // Update bottom pagination
+            document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+            document.getElementById('prev-btn').disabled = !pagination.hasPrevious;
+            document.getElementById('next-btn').disabled = !pagination.hasNext;
+
+            // Update top pagination
+            document.getElementById('page-info-top').textContent = `Page ${currentPage} of ${totalPages}`;
+            document.getElementById('prev-btn-top').disabled = !pagination.hasPrevious;
+            document.getElementById('next-btn-top').disabled = !pagination.hasNext;
+
+            const paginationControls = document.getElementById('pagination-controls');
+            const paginationControlsTop = document.getElementById('pagination-controls-top');
+            const showPagination = totalPages > 1;
+            
+            paginationControls.style.display = showPagination ? 'flex' : 'none';
+            paginationControlsTop.style.display = showPagination ? 'flex' : 'none';
+        }
+
+        // Update stats
+        function updateStats(pagination) {
+            document.getElementById('total-settings').textContent = pagination.total;
+        }
+
+        // Change page
+        function changePage(page) {
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                loadSettings();
+            }
+        }
+
+        // Handle create form submission
+        async function handleCreate(e) {
+            e.preventDefault();
+
+            const jsonInput = document.getElementById('json-input');
+            const createBtn = document.getElementById('create-btn');
+
+            try {
+                const data = JSON.parse(jsonInput.value);
+
+                createBtn.disabled = true;
+                createBtn.textContent = 'Creating...';
+
+                const response = await fetch(`${API_BASE_URL}/settings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to create setting');
+                }
+
+                showAlert('Setting created successfully!');
+                jsonInput.value = '';
+                loadSettings();
+            } catch (error) {
+                showAlert(error.message, 'error');
+            } finally {
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Setting';
+            }
+        }
+
+        // Open edit modal
+        async function openEditModal(uid) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/settings/${uid}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load setting');
+                }
+
+                const setting = await response.json();
+                const { uid: settingUid, _metadata, ...data } = setting;
+
+                currentEditUid = uid;
+                document.getElementById('edit-uid').textContent = uid;
+                document.getElementById('edit-json-input').value = JSON.stringify(data, null, 2);
+                document.getElementById('edit-modal').classList.add('active');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.remove('active');
+            currentEditUid = null;
+        }
+
+        // Handle update form submission
+        async function handleUpdate(e) {
+            e.preventDefault();
+
+            const jsonInput = document.getElementById('edit-json-input');
+
+            try {
+                const data = JSON.parse(jsonInput.value);
+
+                const response = await fetch(`${API_BASE_URL}/settings/${currentEditUid}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to update setting');
+                }
+
+                showAlert('Setting updated successfully!');
+                closeEditModal();
+                loadSettings();
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        // Delete setting
+        async function deleteSetting(uid) {
+            if (!confirm('Are you sure you want to delete this setting? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/settings/${uid}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok && response.status !== 204) {
+                    throw new Error('Failed to delete setting');
+                }
+
+                showAlert('Setting deleted successfully!');
+                loadSettings();
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('edit-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'edit-modal') {
+                closeEditModal();
+            }
+        });
+    </script>
+</body>
+</html>
