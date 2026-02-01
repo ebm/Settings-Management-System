@@ -1,5 +1,7 @@
 services:
-  # PostgreSQL Database
+  # ==================== PRODUCTION SERVICES ====================
+  
+  # Production PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: postgres
@@ -17,7 +19,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # TypeScript API Backend
+  # Production API Backend
   api:
     build:
       context: .
@@ -37,7 +39,7 @@ services:
       postgres:
         condition: service_healthy
 
-  # Nginx Web Server for UI
+  # Production UI
   ui:
     image: nginx:alpine
     container_name: ui
@@ -51,5 +53,59 @@ services:
     depends_on:
       - api
 
+  # ==================== TESTING SERVICES ====================
+  
+  # Test PostgreSQL Database (separate from production)
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: postgres-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: settings_db_test
+    # No volume! Data is temporary
+    tmpfs:
+      - /var/lib/postgresql/data  # Store in RAM (faster + auto-cleanup)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - testing
+
+  # Test API Backend (connects to test database)
+  api-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-test
+    environment:
+      DB_HOST: postgres-test
+      DB_PORT: 5432
+      DB_NAME: settings_db_test
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      PORT: 3000
+      NODE_ENV: test
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    profiles:
+      - testing
+
+  # Test Runner
+  test:
+    build:
+      context: ./test
+      dockerfile: Dockerfile
+    container_name: test
+    environment:
+      BASE_URL: http://api-test:3000
+    depends_on:
+      - api-test
+    profiles:
+      - testing
+
 volumes:
-  postgres_data:
+  postgres_data:  # Only production data persists
