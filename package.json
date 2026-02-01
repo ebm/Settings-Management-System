@@ -5,6 +5,8 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
+    "build:frontend": "tsc -p tsconfig.frontend.json",
+    "build:all": "npm run build && npm run build:frontend",
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "init-db": "ts-node src/init-db.ts",
