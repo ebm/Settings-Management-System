@@ -80,6 +80,13 @@ async function loadSettings(): Promise<void> {
         }
 
         const data: SettingsResponse = await response.json();
+
+        // If current page is empty but there are items, go to last valid page
+        if (data.items.length === 0 && data.pagination.total > 0) {
+            currentPage = data.pagination.totalPages;
+            return loadSettings();
+        }
+
         displaySettings(data.items);
         updatePagination(data.pagination);
         updateStats(data.pagination);
