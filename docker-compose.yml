@@ -85,9 +85,24 @@ services:
       DB_PASSWORD: postgres
       PORT: 3000
       NODE_ENV: test
+    ports:
+      - "3001:3000"
     depends_on:
       postgres-test:
         condition: service_healthy
+    profiles:
+      - testing
+
+  # Test UI (connects to test API)
+  ui-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui.test
+    container_name: ui-test
+    ports:
+      - "8081:80"
+    depends_on:
+      - api-test
     profiles:
       - testing
 
