@@ -103,7 +103,7 @@ async function loadSettings(): Promise<void> {
             <div class="empty-state">
                 <div class="empty-state-icon">!</div>
                 <h3>Error loading settings</h3>
-                <p>${errorMessage}</p>
+                <p>${escapeHtml(errorMessage)}</p>
                 <p style="margin-top: 10px; font-size: 14px;">Make sure the API server is running on ${API_BASE_URL}</p>
             </div>
         `;
