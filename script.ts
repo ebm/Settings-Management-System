@@ -11,10 +11,14 @@ interface SettingMetadata {
     updated_at: string;
 }
 
+interface SettingData {
+    [key: string]: unknown;
+}
+
 interface Setting {
     uid: string;
+    data: SettingData;
     _metadata: SettingMetadata;
-    [key: string]: unknown;
 }
 
 interface Pagination {
@@ -144,10 +148,9 @@ function displaySettings(settings: Setting[]): void {
     container.innerHTML = html;
 }
 
-// Format setting data (exclude uid and _metadata)
+// Format setting data
 function formatSettingData(setting: Setting): string {
-    const { uid, _metadata, ...data } = setting;
-    return JSON.stringify(data, null, 2);
+    return JSON.stringify(setting.data, null, 2);
 }
 
 // Format date
@@ -240,11 +243,10 @@ async function openEditModal(uid: string): Promise<void> {
         }
 
         const setting: Setting = await response.json();
-        const { uid: settingUid, _metadata, ...data } = setting;
 
         currentEditUid = uid;
         (document.getElementById('edit-uid') as HTMLSpanElement).textContent = uid;
-        (document.getElementById('edit-json-input') as HTMLTextAreaElement).value = JSON.stringify(data, null, 2);
+        (document.getElementById('edit-json-input') as HTMLTextAreaElement).value = JSON.stringify(setting.data, null, 2);
         (document.getElementById('edit-modal') as HTMLDivElement).classList.add('active');
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

@@ -16,8 +16,9 @@ export interface Settings {
 }
 
 // Settings object as returned to API consumers
-export interface SettingsResponse extends SettingsData {
+export interface SettingsResponse {
   uid: string;
+  data: SettingsData;
   _metadata: {
     created_at: Date;
     updated_at: Date;

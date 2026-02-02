@@ -123,7 +123,7 @@ export class SettingsModel {
   private static formatSettings(row: Settings): SettingsResponse {
     return {
       uid: row.uid,
-      ...row.data,
+      data: row.data,
       _metadata: {
         created_at: row.created_at,
         updated_at: row.updated_at,
