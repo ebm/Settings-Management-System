@@ -10,11 +10,11 @@ export class SettingsController {
     try {
       const data: SettingsData = req.body;
 
-      // Validate that body contains some data
-      if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+      // Validate that body is an object
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
         const error: ApiError = {
           error: 'Bad Request',
-          message: 'Request body must contain a non-empty JSON object',
+          message: 'Request body must be a JSON object',
         };
         return res.status(400).json(error);
       }
@@ -114,11 +114,11 @@ export class SettingsController {
         return res.status(400).json(error);
       }
 
-      // Validate that body contains some data
-      if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+      // Validate that body is an object
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
         const error: ApiError = {
           error: 'Bad Request',
-          message: 'Request body must contain a non-empty JSON object',
+          message: 'Request body must be a JSON object',
         };
         return res.status(400).json(error);
       }
