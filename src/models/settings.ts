@@ -50,12 +50,15 @@ export class SettingsModel {
     const dataResults = await query<Settings>(dataQuery, [sanitizedLimit, sanitizedOffset]);
     const items = dataResults.map((row) => this.formatSettings(row));
 
+    const totalPages = Math.max(Math.ceil(totalCount / sanitizedLimit), 1);
+    const currentPage = Math.min(Math.floor(sanitizedOffset / sanitizedLimit) + 1, totalPages);
+
     const pagination: PaginationMeta = {
       total: totalCount,
       limit: sanitizedLimit,
       offset: sanitizedOffset,
-      totalPages: Math.ceil(totalCount / sanitizedLimit),
-      currentPage: Math.floor(sanitizedOffset / sanitizedLimit) + 1,
+      totalPages,
+      currentPage,
       hasNext: sanitizedOffset + sanitizedLimit < totalCount,
       hasPrevious: sanitizedOffset > 0 && sanitizedOffset < totalCount,
     };

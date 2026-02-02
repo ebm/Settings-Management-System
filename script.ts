@@ -86,7 +86,8 @@ async function loadSettings(): Promise<void> {
         const data: SettingsResponse = await response.json();
 
         // If current page is empty but there are items, go to last valid page
-        if (data.items.length === 0 && data.pagination.total > 0) {
+        // Only retry if we're not already on page 1 to prevent infinite loop
+        if (data.items.length === 0 && data.pagination.total > 0 && currentPage > 1) {
             currentPage = data.pagination.totalPages;
             return loadSettings();
         }
@@ -148,9 +149,16 @@ function displaySettings(settings: Setting[]): void {
     container.innerHTML = html;
 }
 
+// Escape HTML to prevent XSS
+function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Format setting data
 function formatSettingData(setting: Setting): string {
-    return JSON.stringify(setting.data, null, 2);
+    return escapeHtml(JSON.stringify(setting.data, null, 2));
 }
 
 // Format date
