@@ -57,7 +57,7 @@ export class SettingsModel {
       totalPages: Math.ceil(totalCount / sanitizedLimit),
       currentPage: Math.floor(sanitizedOffset / sanitizedLimit) + 1,
       hasNext: sanitizedOffset + sanitizedLimit < totalCount,
-      hasPrevious: sanitizedOffset > 0,
+      hasPrevious: sanitizedOffset > 0 && sanitizedOffset < totalCount,
     };
 
     return { items, pagination };
