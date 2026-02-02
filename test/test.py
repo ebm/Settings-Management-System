@@ -79,19 +79,18 @@ class TestSettingsAPI:
         
         assert response.status_code == 201
         data = response.json()
-        
+
         # Verify structure
         assert 'uid' in data
-        assert 'theme' in data
-        assert 'language' in data
+        assert 'data' in data
         assert '_metadata' in data
         assert 'created_at' in data['_metadata']
         assert 'updated_at' in data['_metadata']
-        
-        # Verify values
-        assert data['theme'] == "dark"
-        assert data['language'] == "en"
-        
+
+        # Verify values are in nested data field
+        assert data['data']['theme'] == "dark"
+        assert data['data']['language'] == "en"
+
         # Track for cleanup
         self.created_uids.append(data['uid'])
 
@@ -119,8 +118,8 @@ class TestSettingsAPI:
         
         assert response.status_code == 201
         data = response.json()
-        assert data['user']['name'] == "John"
-        assert data['user']['preferences']['notifications'] == True
+        assert data['data']['user']['name'] == "John"
+        assert data['data']['user']['preferences']['notifications'] == True
         self.created_uids.append(data['uid'])
 
     def test_create_setting_empty_object(self):
@@ -130,10 +129,12 @@ class TestSettingsAPI:
             json={},
             timeout=TEST_TIMEOUT
         )
-        
-        assert response.status_code == 400
+
+        assert response.status_code == 201
         data = response.json()
-        assert 'error' in data
+        assert 'uid' in data
+        assert data['data'] == {}
+        self.created_uids.append(data['uid'])
 
     def test_create_setting_invalid_json(self):
         """Test creating a setting with invalid JSON"""
@@ -152,8 +153,12 @@ class TestSettingsAPI:
             f"{BASE_URL}/settings",
             timeout=TEST_TIMEOUT
         )
-        
-        assert response.status_code == 400
+
+        # No body is treated as empty object, which is now allowed
+        assert response.status_code == 201
+        data = response.json()
+        assert 'uid' in data
+        self.created_uids.append(data['uid'])
 
     # ==================== READ (GET) ====================
     
@@ -223,8 +228,8 @@ class TestSettingsAPI:
         assert response.status_code == 200
         data = response.json()
         assert data['uid'] == uid
-        assert data['name'] == "test"
-        assert data['value'] == 123
+        assert data['data']['name'] == "test"
+        assert data['data']['value'] == 123
 
     def test_get_setting_by_uid_not_found(self):
         """Test getting a non-existent setting"""
@@ -266,9 +271,9 @@ class TestSettingsAPI:
         
         assert response.status_code == 200
         data = response.json()
-        assert data['updated'] == "new_value"
-        assert data['count'] == 42
-        assert 'original' not in data  # Old data replaced
+        assert data['data']['updated'] == "new_value"
+        assert data['data']['count'] == 42
+        assert 'original' not in data['data']  # Old data replaced
 
     def test_update_setting_not_found(self):
         """Test updating a non-existent setting"""
@@ -285,14 +290,17 @@ class TestSettingsAPI:
     def test_update_setting_empty_body(self):
         """Test updating with empty JSON"""
         created = self._create_setting({"data": "value"})
-        
+
         response = requests.put(
             f"{BASE_URL}/settings/{created['uid']}",
             json={},
             timeout=TEST_TIMEOUT
         )
-        
-        assert response.status_code == 400
+
+        # Empty object is now allowed
+        assert response.status_code == 200
+        data = response.json()
+        assert data['data'] == {}
 
     def test_update_preserves_timestamps(self):
         """Test that update changes updated_at but not created_at"""
@@ -393,7 +401,7 @@ class TestSettingsAPI:
         
         assert response.status_code == 201
         data = response.json()
-        assert data['unicode'] == "Hello 世界 🌍"
+        assert data['data']['unicode'] == "Hello 世界 🌍"
         self.created_uids.append(data['uid'])
 
     def test_create_setting_with_numbers_and_booleans(self):
@@ -416,9 +424,9 @@ class TestSettingsAPI:
         
         assert response.status_code == 201
         data = response.json()
-        assert data['integer'] == 42
-        assert data['boolean_true'] is True
-        assert data['null_value'] is None
+        assert data['data']['integer'] == 42
+        assert data['data']['boolean_true'] is True
+        assert data['data']['null_value'] is None
         self.created_uids.append(data['uid'])
 
     def test_concurrent_operations(self):
@@ -442,8 +450,40 @@ class TestSettingsAPI:
             assert response.status_code == 201
             self.created_uids.append(response.json()['uid'])
 
+    # ==================== SECURITY ====================
+
+    def test_user_data_isolated_from_system_fields(self):
+        """Test that user data is kept separate from system fields"""
+        payload = {
+            "uid": "user-provided-uid",
+            "_metadata": {"created_at": "fake"},
+            "name": "test"
+        }
+
+        response = requests.post(
+            f"{BASE_URL}/settings",
+            json=payload,
+            timeout=TEST_TIMEOUT
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+
+        # System uid should be a valid UUID
+        assert len(data['uid']) == 36  # UUID format
+
+        # System _metadata should have real timestamps
+        assert data['_metadata']['created_at'] != "fake"
+
+        # User's uid and _metadata should be preserved in data field
+        assert data['data']['uid'] == "user-provided-uid"
+        assert data['data']['_metadata'] == {"created_at": "fake"}
+        assert data['data']['name'] == "test"
+
+        self.created_uids.append(data['uid'])
+
     # ==================== PERFORMANCE ====================
-    
+
     def test_response_time_create(self):
         """Test that create operation is reasonably fast"""
         import time
