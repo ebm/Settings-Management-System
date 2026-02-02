@@ -3,7 +3,7 @@ const API_BASE_URL = 'http://localhost:3000';
 let currentPage = 1;
 let totalPages = 1;
 let currentEditUid: string | null = null;
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
 // Types
 interface SettingMetadata {
